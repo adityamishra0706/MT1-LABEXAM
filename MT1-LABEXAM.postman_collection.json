@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "b38172fe-bd2c-46f6-8f5e-bf2bafdb0c43",
     "name": "MT1-LABEXAM API Collection",
-    "description": "Start both servers before sending requests. Run the Safe CRUD sequence in order: POST /cart, PUT /cart/4, then DELETE /cart/4. The PDF sample PUT and DELETE requests for ID 1 are also included and should be run after restarting the Express server.",
+    "description": "Start both servers before sending requests. HTTP Server runs on port 3000 and Express Server runs on port 4000. Run the Safe CRUD sequence in order: POST /cart, PUT /cart/4, then DELETE /cart/4. The PDF sample PUT and DELETE requests for ID 1 are also included and should be run after restarting the Express server.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -186,10 +186,24 @@
           }
         },
         {
+          "name": "GET invalid Express product ID",
+          "request": {
+            "method": "GET",
+            "url": "{{expressBaseUrl}}/cart/abc"
+          }
+        },
+        {
           "name": "GET unknown HTTP route",
           "request": {
             "method": "GET",
             "url": "{{httpBaseUrl}}/not-found"
+          }
+        },
+        {
+          "name": "GET unknown Express route",
+          "request": {
+            "method": "GET",
+            "url": "{{expressBaseUrl}}/not-found"
           }
         },
         {
@@ -212,6 +226,50 @@
               }
             },
             "url": "{{expressBaseUrl}}/cart"
+          }
+        },
+        {
+          "name": "POST duplicate ID Express",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"productName\": \"Duplicate Product\",\n  \"price\": 500,\n  \"quantity\": 1,\n  \"category\": \"Electronics\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{expressBaseUrl}}/cart"
+          }
+        },
+        {
+          "name": "POST duplicate ID HTTP Server",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"productName\": \"Duplicate Item\",\n  \"price\": 500,\n  \"quantity\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{httpBaseUrl}}/add-to-cart"
           }
         },
         {

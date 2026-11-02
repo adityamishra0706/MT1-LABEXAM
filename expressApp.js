@@ -1,139 +1,131 @@
-import express from 'express';
+import http from "http";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
-const app = express();
-const PORT = 4000;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const cartItems = [
-  { id: 1, productName: 'Wireless Mouse', price: 799, quantity: 2, category: 'Electronics' },
-  { id: 2, productName: 'Notebook', price: 80, quantity: 2, category: 'Stationery' },
-  { id: 3, productName: 'Water Bottle', price: 350, quantity: 1, category: 'Accessories' }
+let cart = [
+  {
+    id: 1,
+    productName: "Wireless Mouse",
+    price: 799,
+    quantity: 2,
+  },
+  {
+    id: 2,
+    productName: "Keyboard",
+    price: 1200,
+    quantity: 1,
+  },
 ];
 
-app.use(express.json());
+const server = http.createServer((req, res) => {
+  const { method, url } = req;
 
-function getProductId(id) {
-  const productId = Number(id);
-  return Number.isInteger(productId) && productId > 0 ? productId : null;
-}
-
-function validateProduct(product, requireId) {
-  if (!product || typeof product !== 'object' || Array.isArray(product)) {
-    return 'Request body must be a JSON object.';
+  // Welcome route
+  if (method === "GET" && url === "/") {
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end("<h1>Welcome to Shopping Cart</h1>");
   }
 
-  const { id, productName, price, quantity, category } = product;
-
-  if (requireId && (!Number.isInteger(id) || id <= 0)) {
-    return 'id must be a positive integer.';
-  }
-  if (typeof productName !== 'string' || productName.trim() === '') {
-    return 'productName must be a non-empty string.';
-  }
-  if (typeof price !== 'number' || !Number.isFinite(price) || price < 0) {
-    return 'price must be a non-negative number.';
-  }
-  if (!Number.isInteger(quantity) || quantity <= 0) {
-    return 'quantity must be a positive integer.';
-  }
-  if (typeof category !== 'string' || category.trim() === '') {
-    return 'category must be a non-empty string.';
+  // Get cart items
+  else if (method === "GET" && url === "/cart") {
+    res.writeHead(200, {
+      "Content-Type": "application/json",
+    });
+    res.end(JSON.stringify(cart));
   }
 
-  return null;
-}
+  // About route
+  else if (method === "GET" && url === "/about") {
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end("<h1>Shopping Cart Management Application</h1>");
+  }
 
-app.get('/cart', (request, response) => {
-  response.status(200).json(cartItems);
+  // Serve HTML using FS module
+  else if (method === "GET" && url === "/home") {
+    const filePath = path.join(__dirname, "public", "index.html");
+
+    fs.readFile(filePath, (err, data) => {
+      if (err) {
+        res.writeHead(500, {
+          "Content-Type": "text/plain",
+        });
+        res.end("Error reading HTML file");
+        return;
+      }
+
+      res.writeHead(200, {
+        "Content-Type": "text/html",
+      });
+      res.end(data);
+    });
+  }
+
+  // Add product to cart
+  else if (method === "POST" && url === "/add-to-cart") {
+    let body = "";
+
+    req.on("data", (chunk) => {
+      body += chunk;
+    });
+
+    req.on("end", () => {
+      try {
+        const product = JSON.parse(body);
+
+        if (
+          product.id === undefined ||
+          !product.productName ||
+          typeof product.price !== "number" ||
+          typeof product.quantity !== "number"
+        ) {
+          res.writeHead(400, {
+            "Content-Type": "application/json",
+          });
+          res.end(
+            JSON.stringify({
+              message: "Invalid product details",
+            }),
+          );
+          return;
+        }
+
+        cart.push(product);
+
+        res.writeHead(201, {
+          "Content-Type": "application/json",
+        });
+        res.end(
+          JSON.stringify({
+            message: "Product added successfully",
+            product,
+          }),
+        );
+      } catch {
+        res.writeHead(400, {
+          "Content-Type": "application/json",
+        });
+        res.end(
+          JSON.stringify({
+            message: "Invalid JSON",
+          }),
+        );
+      }
+    });
+  }
+
+  // Invalid route
+  else {
+    res.writeHead(404, {
+      "Content-Type": "text/plain",
+    });
+    res.end("404 - Route Not Found");
+  }
 });
 
-app.get('/cart/:id', (request, response) => {
-  const productId = getProductId(request.params.id);
-  const product = cartItems.find((item) => item.id === productId);
-
-  if (!product) {
-    response.status(404).json({ message: 'Product not found.' });
-    return;
-  }
-
-  response.status(200).json({
-    ...product,
-    totalPrice: product.price * product.quantity
-  });
-});
-
-app.post('/cart', (request, response) => {
-  const validationError = validateProduct(request.body, true);
-  if (validationError) {
-    response.status(400).json({ message: validationError });
-    return;
-  }
-
-  if (cartItems.some((item) => item.id === request.body.id)) {
-    response.status(409).json({ message: 'A product with this id already exists.' });
-    return;
-  }
-
-  const newProduct = {
-    id: request.body.id,
-    productName: request.body.productName.trim(),
-    price: request.body.price,
-    quantity: request.body.quantity,
-    category: request.body.category.trim()
-  };
-
-  cartItems.push(newProduct);
-  response.status(201).json({ message: 'Product added successfully', product: newProduct });
-});
-
-app.put('/cart/:id', (request, response) => {
-  const productId = getProductId(request.params.id);
-  const product = cartItems.find((item) => item.id === productId);
-
-  if (!product) {
-    response.status(404).json({ message: 'Product not found.' });
-    return;
-  }
-
-  const validationError = validateProduct(request.body, false);
-  if (validationError) {
-    response.status(400).json({ message: validationError });
-    return;
-  }
-
-  product.productName = request.body.productName.trim();
-  product.price = request.body.price;
-  product.quantity = request.body.quantity;
-  product.category = request.body.category.trim();
-
-  response.status(200).json({ message: 'Product updated successfully.', product });
-});
-
-app.delete('/cart/:id', (request, response) => {
-  const productId = getProductId(request.params.id);
-  const productIndex = cartItems.findIndex((item) => item.id === productId);
-
-  if (productIndex === -1) {
-    response.status(404).json({ message: 'Product not found.' });
-    return;
-  }
-
-  const deletedProduct = cartItems.splice(productIndex, 1)[0];
-  response.status(200).json({ message: 'Product deleted successfully.', product: deletedProduct });
-});
-
-app.use((request, response) => {
-  response.status(404).json({ message: 'Route not found.' });
-});
-
-app.use((error, request, response, next) => {
-  if (error.type === 'entity.parse.failed') {
-    response.status(400).json({ message: 'Invalid JSON in request body.' });
-    return;
-  }
-
-  next(error);
-});
-
-app.listen(PORT, () => {
-  console.log(`Express Server running at http://localhost:${PORT}`);
+server.listen(3000, () => {
+  console.log("HTTP Server running at http://localhost:3000");
 });

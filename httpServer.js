@@ -1,133 +1,156 @@
-import { createServer } from 'node:http';
-import { readFile } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import path from 'node:path';
+import express from "express";
 
-const PORT = 3000;
-const currentDirectory = path.dirname(fileURLToPath(import.meta.url));
-const homePagePath = path.join(currentDirectory, 'public', 'index.html');
+const app = express();
+app.use(express.json());
 
-const cartItems = [
-  { id: 1, productName: 'Notebook', price: 80, quantity: 2 },
-  { id: 2, productName: 'Pen Set', price: 120, quantity: 1 },
-  { id: 3, productName: 'Water Bottle', price: 350, quantity: 1 }
+let cart = [
+  {
+    id: 1,
+    productName: "Wireless Mouse",
+    price: 799,
+    quantity: 2,
+    category: "Electronics",
+  },
+  {
+    id: 2,
+    productName: "Keyboard",
+    price: 1200,
+    quantity: 1,
+    category: "Electronics",
+  },
+  {
+    id: 3,
+    productName: "Notebook",
+    price: 100,
+    quantity: 5,
+    category: "Stationery",
+  },
 ];
 
-function sendJson(response, statusCode, data) {
-  response.writeHead(statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
-  response.end(JSON.stringify(data));
-}
-
-function validateProduct(product) {
-  if (!product || typeof product !== 'object' || Array.isArray(product)) {
-    return 'Request body must be a JSON object.';
-  }
-
-  const { id, productName, price, quantity } = product;
-
-  if (!Number.isInteger(id) || id <= 0) {
-    return 'id must be a positive integer.';
-  }
-  if (typeof productName !== 'string' || productName.trim() === '') {
-    return 'productName must be a non-empty string.';
-  }
-  if (typeof price !== 'number' || !Number.isFinite(price) || price < 0) {
-    return 'price must be a non-negative number.';
-  }
-  if (!Number.isInteger(quantity) || quantity <= 0) {
-    return 'quantity must be a positive integer.';
-  }
-  return null;
-}
-
-function handleAddToCart(request, response) {
-  let body = '';
-
-  request.on('data', (chunk) => {
-    body += chunk;
-  });
-
-  request.on('error', () => {
-    sendJson(response, 400, { message: 'Unable to read request body.' });
-  });
-
-  request.on('end', () => {
-    let product;
-
-    try {
-      product = JSON.parse(body);
-    } catch {
-      sendJson(response, 400, { message: 'Invalid JSON in request body.' });
-      return;
-    }
-
-    const validationError = validateProduct(product);
-    if (validationError) {
-      sendJson(response, 400, { message: validationError });
-      return;
-    }
-
-    if (cartItems.some((item) => item.id === product.id)) {
-      sendJson(response, 409, { message: 'A product with this id already exists.' });
-      return;
-    }
-
-    const newProduct = {
-      id: product.id,
-      productName: product.productName.trim(),
-      price: product.price,
-      quantity: product.quantity
-    };
-
-    cartItems.push(newProduct);
-    sendJson(response, 201, { message: 'Product added to cart.', product: newProduct });
-  });
-}
-
-const server = createServer((request, response) => {
-  const requestUrl = new URL(request.url, `http://${request.headers.host || 'localhost'}`);
-
-  if (request.method === 'GET' && requestUrl.pathname === '/') {
-    response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-    response.end('<h1>Welcome to the Shopping Cart Application</h1>');
-    return;
-  }
-
-  if (request.method === 'GET' && requestUrl.pathname === '/cart') {
-    sendJson(response, 200, cartItems);
-    return;
-  }
-
-  if (request.method === 'GET' && requestUrl.pathname === '/about') {
-    sendJson(response, 200, {
-      application: 'Shopping Cart Application',
-      description: 'A Node.js HTTP server created for the MT1 practical exam.',
-      port: PORT
-    });
-    return;
-  }
-
-  if (request.method === 'GET' && requestUrl.pathname === '/home') {
-    readFile(homePagePath, 'utf8', (error, html) => {
-      if (error) {
-        sendJson(response, 500, { message: 'Unable to read the home page file.' });
-        return;
-      }
-
-      response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-      response.end(html);
-    });
-    return;
-  }
-
-  if (request.method === 'POST' && requestUrl.pathname === '/add-to-cart') {
-    handleAddToCart(request, response);
-    return;
-  }
-
-  sendJson(response, 404, { message: 'Route not found.' });
+// GET all cart items
+app.get("/cart", (req, res) => {
+  res.json(cart);
 });
 
-server.listen(PORT, () => {
-  console.log(`HTTP Server running at http://localhost:${PORT}`);
+// GET cart item by ID
+app.get("/cart/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const product = cart.find((item) => item.id === id);
+
+  if (!product) {
+    return res.status(404).json({
+      message: "Product not found",
+    });
+  }
+
+  res.json({
+    ...product,
+    totalPrice: product.price * product.quantity,
+  });
+});
+
+// POST add a product
+app.post("/cart", (req, res) => {
+  const { id, productName, price, quantity, category } = req.body;
+
+  if (
+    id === undefined ||
+    !productName ||
+    typeof price !== "number" ||
+    typeof quantity !== "number" ||
+    !category
+  ) {
+    return res.status(400).json({
+      message: "Invalid product details",
+    });
+  }
+
+  if (cart.some((item) => item.id === id)) {
+    return res.status(400).json({
+      message: "Product ID already exists",
+    });
+  }
+
+  const product = {
+    id,
+    productName,
+    price,
+    quantity,
+    category,
+  };
+
+  cart.push(product);
+
+  res.status(201).json({
+    message: "Product added successfully",
+    product,
+  });
+});
+
+// PUT update product
+app.put("/cart/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const index = cart.findIndex((item) => item.id === id);
+
+  if (index === -1) {
+    return res.status(404).json({
+      message: "Product not found",
+    });
+  }
+
+  const { productName, price, quantity, category } = req.body;
+
+  if (
+    !productName ||
+    typeof price !== "number" ||
+    typeof quantity !== "number" ||
+    !category
+  ) {
+    return res.status(400).json({
+      message: "Invalid product details",
+    });
+  }
+
+  cart[index] = {
+    id,
+    productName,
+    price,
+    quantity,
+    category,
+  };
+
+  res.json({
+    message: "Product updated successfully",
+    product: cart[index],
+  });
+});
+
+// DELETE product
+app.delete("/cart/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const index = cart.findIndex((item) => item.id === id);
+
+  if (index === -1) {
+    return res.status(404).json({
+      message: "Product not found",
+    });
+  }
+
+  const deletedProduct = cart.splice(index, 1);
+
+  res.json({
+    message: "Product deleted successfully",
+    product: deletedProduct[0],
+  });
+});
+
+// Invalid routes
+app.use((req, res) => {
+  res.status(404).json({
+    message: "Route not found",
+  });
+});
+
+app.listen(4000, () => {
+  console.log("Express Server running at http://localhost:4000");
 });

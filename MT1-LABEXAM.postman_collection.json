@@ -1,0 +1,145 @@
+{
+  "info": {
+    "_postman_id": "b38172fe-bd2c-46f6-8f5e-bf2bafdb0c43",
+    "name": "MT1-LABEXAM API Collection",
+    "description": "Run the Express requests in order: POST /cart, PUT /cart/4, then DELETE /cart/4. Start both servers before sending requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "httpBaseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "expressBaseUrl",
+      "value": "http://localhost:4000"
+    }
+  ],
+  "item": [
+    {
+      "name": "Part A - Built-in HTTP Server",
+      "item": [
+        {
+          "name": "GET /",
+          "request": {
+            "method": "GET",
+            "url": "{{httpBaseUrl}}/"
+          }
+        },
+        {
+          "name": "GET /cart",
+          "request": {
+            "method": "GET",
+            "url": "{{httpBaseUrl}}/cart"
+          }
+        },
+        {
+          "name": "GET /about",
+          "request": {
+            "method": "GET",
+            "url": "{{httpBaseUrl}}/about"
+          }
+        },
+        {
+          "name": "GET /home",
+          "request": {
+            "method": "GET",
+            "url": "{{httpBaseUrl}}/home"
+          }
+        },
+        {
+          "name": "POST /add-to-cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 4,\n  \"productName\": \"Headphones\",\n  \"price\": 1499,\n  \"quantity\": 1,\n  \"category\": \"Electronics\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{httpBaseUrl}}/add-to-cart"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Part B - Express Server (run in this order)",
+      "item": [
+        {
+          "name": "GET /cart",
+          "request": {
+            "method": "GET",
+            "url": "{{expressBaseUrl}}/cart"
+          }
+        },
+        {
+          "name": "GET /cart/1",
+          "request": {
+            "method": "GET",
+            "url": "{{expressBaseUrl}}/cart/1"
+          }
+        },
+        {
+          "name": "POST /cart (create ID 4 first)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 4,\n  \"productName\": \"Headphones\",\n  \"price\": 1499,\n  \"quantity\": 1,\n  \"category\": \"Electronics\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{expressBaseUrl}}/cart"
+          }
+        },
+        {
+          "name": "PUT /cart/4 (run after POST)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productName\": \"Wireless Headphones\",\n  \"price\": 1599,\n  \"quantity\": 1,\n  \"category\": \"Electronics\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{expressBaseUrl}}/cart/4"
+          }
+        },
+        {
+          "name": "DELETE /cart/4 (run after PUT)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{expressBaseUrl}}/cart/4"
+          }
+        }
+      ]
+    }
+  ]
+}

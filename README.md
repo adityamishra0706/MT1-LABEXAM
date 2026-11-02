@@ -59,12 +59,11 @@ Valid JSON body for `POST /add-to-cart`:
   "id": 4,
   "productName": "Headphones",
   "price": 1499,
-  "quantity": 1,
-  "category": "Electronics"
+  "quantity": 1
 }
 ```
 
-The required fields are `id`, `productName`, `price`, `quantity`, and `category`. Invalid JSON or invalid field values return `400`; unknown routes return `404`.
+The required fields are `id`, `productName`, `price`, and `quantity`. Invalid JSON or invalid field values return `400`; unknown routes return `404`.
 
 ## Part B: Express server
 
@@ -75,10 +74,33 @@ Base URL: `http://localhost:4000`
 | GET | `/cart` | All products, `200` |
 | GET | `/cart/1` | One product plus `totalPrice`, `200` |
 | POST | `/cart` | Create product, `201` |
-| PUT | `/cart/4` | Update product ID 4, `200` |
-| DELETE | `/cart/4` | Delete product ID 4, `200` |
+| PUT | `/cart/:id` | Update an existing product, `200` |
+| DELETE | `/cart/:id` | Delete an existing product, `200` |
 
-Use this order in Postman: first `POST /cart`, then `PUT /cart/4`, then `DELETE /cart/4`. Every product stores and returns `id`, `productName`, `price`, `quantity`, and `category`; the PUT body must include all fields except `id`.
+Every product stores and returns `id`, `productName`, `price`, `quantity`, and `category`; the PUT body must include all fields except `id`.
+
+PDF sample POST body for `POST /cart`:
+
+```json
+{
+  "id": 4,
+  "productName": "Bluetooth Headphones",
+  "price": 1499,
+  "quantity": 1,
+  "category": "Electronics"
+}
+```
+
+PDF sample PUT body for `PUT /cart/1`:
+
+```json
+{
+  "productName": "Wireless Mouse",
+  "price": 899,
+  "quantity": 3,
+  "category": "Electronics"
+}
+```
 
 `GET /cart/:id` calculates `totalPrice` as `price * quantity`. Missing products return `404`; invalid JSON or invalid product details return `400`.
 
@@ -87,23 +109,14 @@ Use this order in Postman: first `POST /cart`, then `PUT /cart/4`, then `DELETE 
 1. Start both servers.
 2. Open Postman and choose **Import**.
 3. Select `MT1-LABEXAM.postman_collection.json` from this project folder.
-4. Open the imported collection and send the requests in the shown order.
-5. Take genuine screenshots of your Postman request, status code, and response. Save them in `screenshots/`.
+4. Run the **Safe CRUD Sequence** folder in order: POST `/cart`, PUT `/cart/4`, then DELETE `/cart/4`.
+5. Restart the Express server before using the separate PDF sample PUT and DELETE requests for `/cart/1`, because DELETE removes that sample product.
+6. Take genuine screenshots of your Postman request, status code, and response. Save them in `screenshots/`.
 
 Postman has not been run automatically by this project.
 
-## GitHub submission later
+## GitHub repository
 
-Do this only after creating an empty GitHub repository and when you are ready to submit:
+Repository: https://github.com/adityamishra0706/MT1-LABEXAM
 
-```powershell
-git init
-git add .
-git status
-git commit -m "Complete MT1 lab exam practical"
-git branch -M main
-git remote add origin https://github.com/YOUR-USERNAME/MT1-LABEXAM.git
-git push -u origin main
-```
-
-Replace `YOUR-USERNAME` with your GitHub username. These commands have not been run for this project.
+The project uses meaningful local commits for implementation, submission documentation, and the screenshots folder. Push the `main` branch only after genuine screenshots have been added.

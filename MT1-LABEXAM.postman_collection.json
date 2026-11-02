@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "b38172fe-bd2c-46f6-8f5e-bf2bafdb0c43",
     "name": "MT1-LABEXAM API Collection",
-    "description": "Run the Express requests in order: POST /cart, PUT /cart/4, then DELETE /cart/4. Start both servers before sending requests.",
+    "description": "Start both servers before sending requests. Run the Safe CRUD sequence in order: POST /cart, PUT /cart/4, then DELETE /cart/4. The PDF sample PUT and DELETE requests for ID 1 are also included and should be run after restarting the Express server.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -59,7 +59,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"id\": 4,\n  \"productName\": \"Headphones\",\n  \"price\": 1499,\n  \"quantity\": 1,\n  \"category\": \"Electronics\"\n}",
+              "raw": "{\n  \"id\": 4,\n  \"productName\": \"Headphones\",\n  \"price\": 1499,\n  \"quantity\": 1\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "name": "Part B - Express Server (run in this order)",
+      "name": "Part B - Express Server Safe CRUD Sequence (run in this order)",
       "item": [
         {
           "name": "GET /cart",
@@ -100,7 +100,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"id\": 4,\n  \"productName\": \"Headphones\",\n  \"price\": 1499,\n  \"quantity\": 1,\n  \"category\": \"Electronics\"\n}",
+              "raw": "{\n  \"id\": 4,\n  \"productName\": \"Bluetooth Headphones\",\n  \"price\": 1499,\n  \"quantity\": 1,\n  \"category\": \"Electronics\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -137,6 +137,103 @@
           "request": {
             "method": "DELETE",
             "url": "{{expressBaseUrl}}/cart/4"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Part B - PDF Sample Requests for ID 1 (restart Express first)",
+      "item": [
+        {
+          "name": "PUT /cart/1 (PDF sample)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productName\": \"Wireless Mouse\",\n  \"price\": 899,\n  \"quantity\": 3,\n  \"category\": \"Electronics\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{expressBaseUrl}}/cart/1"
+          }
+        },
+        {
+          "name": "DELETE /cart/1 (PDF sample)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{expressBaseUrl}}/cart/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Error Handling Checks",
+      "item": [
+        {
+          "name": "GET missing Express product",
+          "request": {
+            "method": "GET",
+            "url": "{{expressBaseUrl}}/cart/999"
+          }
+        },
+        {
+          "name": "GET unknown HTTP route",
+          "request": {
+            "method": "GET",
+            "url": "{{httpBaseUrl}}/not-found"
+          }
+        },
+        {
+          "name": "POST invalid Express product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 5,\n  \"productName\": \"\",\n  \"price\": -1,\n  \"quantity\": 0,\n  \"category\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{expressBaseUrl}}/cart"
+          }
+        },
+        {
+          "name": "POST invalid HTTP JSON",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ invalid-json }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{httpBaseUrl}}/add-to-cart"
           }
         }
       ]

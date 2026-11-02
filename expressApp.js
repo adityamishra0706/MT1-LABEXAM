@@ -4,8 +4,8 @@ const app = express();
 const PORT = 4000;
 
 const cartItems = [
-  { id: 1, productName: 'Notebook', price: 80, quantity: 2, category: 'Stationery' },
-  { id: 2, productName: 'Pen Set', price: 120, quantity: 1, category: 'Stationery' },
+  { id: 1, productName: 'Wireless Mouse', price: 799, quantity: 2, category: 'Electronics' },
+  { id: 2, productName: 'Notebook', price: 80, quantity: 2, category: 'Stationery' },
   { id: 3, productName: 'Water Bottle', price: 350, quantity: 1, category: 'Accessories' }
 ];
 
@@ -82,7 +82,7 @@ app.post('/cart', (request, response) => {
   };
 
   cartItems.push(newProduct);
-  response.status(201).json({ message: 'Product added to cart.', product: newProduct });
+  response.status(201).json({ message: 'Product added successfully', product: newProduct });
 });
 
 app.put('/cart/:id', (request, response) => {
@@ -135,5 +135,5 @@ app.use((error, request, response, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Express server is running at http://localhost:${PORT}`);
+  console.log(`Express Server running at http://localhost:${PORT}`);
 });

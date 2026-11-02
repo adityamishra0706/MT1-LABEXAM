@@ -8,9 +8,9 @@ const currentDirectory = path.dirname(fileURLToPath(import.meta.url));
 const homePagePath = path.join(currentDirectory, 'public', 'index.html');
 
 const cartItems = [
-  { id: 1, productName: 'Notebook', price: 80, quantity: 2, category: 'Stationery' },
-  { id: 2, productName: 'Pen Set', price: 120, quantity: 1, category: 'Stationery' },
-  { id: 3, productName: 'Water Bottle', price: 350, quantity: 1, category: 'Accessories' }
+  { id: 1, productName: 'Notebook', price: 80, quantity: 2 },
+  { id: 2, productName: 'Pen Set', price: 120, quantity: 1 },
+  { id: 3, productName: 'Water Bottle', price: 350, quantity: 1 }
 ];
 
 function sendJson(response, statusCode, data) {
@@ -23,7 +23,7 @@ function validateProduct(product) {
     return 'Request body must be a JSON object.';
   }
 
-  const { id, productName, price, quantity, category } = product;
+  const { id, productName, price, quantity } = product;
 
   if (!Number.isInteger(id) || id <= 0) {
     return 'id must be a positive integer.';
@@ -37,10 +37,6 @@ function validateProduct(product) {
   if (!Number.isInteger(quantity) || quantity <= 0) {
     return 'quantity must be a positive integer.';
   }
-  if (typeof category !== 'string' || category.trim() === '') {
-    return 'category must be a non-empty string.';
-  }
-
   return null;
 }
 
@@ -80,8 +76,7 @@ function handleAddToCart(request, response) {
       id: product.id,
       productName: product.productName.trim(),
       price: product.price,
-      quantity: product.quantity,
-      category: product.category.trim()
+      quantity: product.quantity
     };
 
     cartItems.push(newProduct);
@@ -134,5 +129,5 @@ const server = createServer((request, response) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`HTTP server is running at http://localhost:${PORT}`);
+  console.log(`HTTP Server running at http://localhost:${PORT}`);
 });
